@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 
 from .models import Airplane
 from .serializers import AirplaneSerializer
+from apps.flights.serializers import FlightSerializer
 
 
 class AirplaneListCreateView(APIView):
@@ -93,5 +94,8 @@ class AirplaneFlightsView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        
-        return Response([])
+        flights = airplane.flights.all()
+
+        serializer = FlightSerializer(flights, many=True)
+
+        return Response(serializer.data)
