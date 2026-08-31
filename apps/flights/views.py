@@ -5,10 +5,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.airplanes.models import Airplane
 from apps.flights.models import Flight
 from apps.flights.serializers import FlightSerializer
-
+from apps.reservations.serializers import ReservationSerializer
 
 class FlightListCreateView(APIView):
 
@@ -175,4 +174,11 @@ class FlightReservationsView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        return Response([])
+        reservations = flight.reservations.all()
+
+        serializer = ReservationSerializer(
+            reservations,
+            many=True
+        )
+
+        return Response(serializer.data)
