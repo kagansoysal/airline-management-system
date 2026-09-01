@@ -8,6 +8,10 @@ from apps.reservations.serializers import ReservationSerializer
 from django.conf import settings
 from django.core.mail import send_mail
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ReservationListCreateView(APIView):
 
@@ -31,14 +35,17 @@ class ReservationListCreateView(APIView):
                 Route: {reservation.flight.departure} -> {reservation.flight.destination}
                 Departure Time: {reservation.flight.departure_time}
                 Arrival Time: {reservation.flight.arrival_time}
-                """
+            """
 
-            send_mail(
-                subject="Reservation Confirmation",
-                message=email_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[reservation.passenger_email],
-            )
+            try:
+                send_mail(
+                    subject="Reservation Confirmation",
+                    message=email_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[reservation.passenger_email],
+                )
+            except Exception as e:
+                logger.error("Failed to send reservation confirmation email: %s", e)
 
             return Response(
                 ReservationSerializer(reservation).data,
