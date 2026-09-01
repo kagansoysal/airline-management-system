@@ -61,7 +61,7 @@ class ReservationSerializer(serializers.ModelSerializer):
             reservation_code = "".join(
                 random.choices(
                     string.ascii_uppercase + string.digits,
-                    k=8
+                    k=5
                 )
             )
 
