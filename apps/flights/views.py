@@ -1,4 +1,5 @@
 from datetime import timedelta
+from datetime import date
 
 from django.db.models import Q
 from rest_framework import status
@@ -20,15 +21,33 @@ class FlightListCreateView(APIView):
         arrival_date = request.query_params.get("arrival_date")
 
         if departure:
+            departure = departure.replace("ı", "i").replace("İ", "I")
             flights = flights.filter(departure__icontains=departure)
 
         if destination:
+            destination = destination.replace("ı", "i").replace("İ", "I")
             flights = flights.filter(destination__icontains=destination)
 
         if departure_date:
+            try:
+                date.fromisoformat(departure_date)
+            except ValueError:
+                return Response(
+                    {"departure_date": "Invalid date format. Use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             flights = flights.filter(departure_time__date=departure_date)
 
         if arrival_date:
+            try:
+                date.fromisoformat(arrival_date)
+            except ValueError:
+                return Response(
+                    {"arrival_date": "Invalid date format. Use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             flights = flights.filter(arrival_time__date=arrival_date)
 
         serializer = FlightSerializer(flights, many=True)
