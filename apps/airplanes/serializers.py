@@ -5,6 +5,7 @@ from .models import Airplane
 
 class AirplaneSerializer(serializers.ModelSerializer):
     capacity = serializers.IntegerField(min_value=1)
+    production_year = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = Airplane
