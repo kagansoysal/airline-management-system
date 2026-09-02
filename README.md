@@ -183,7 +183,10 @@ Create a `.env` file in the project root with:
 ```env
 EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-gmail-app-password
+SECRET_KEY=your-secret-key
 ```
+
+SECRET_KEY is not directly required by the current API functionality. However, the project is configured to read the Django SECRET_KEY from the .env file, so defining it is recommended to avoid potential issues with Django features.
 
 The project uses:
 
