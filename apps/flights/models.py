@@ -19,6 +19,14 @@ class Flight(models.Model):
     def __str__(self):
         return self.flight_number
     
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(arrival_time__gt=models.F("departure_time")),
+                name="arrival_after_departure",
+            ),
+        ]
+    
     
 class RouteReport(models.Model):
     departure = models.CharField(max_length=100)
