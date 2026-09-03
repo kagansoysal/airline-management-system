@@ -44,16 +44,15 @@ The project uses SQLite. The `db.sqlite3` database file is created automatically
 
 ### 5. Configure environment variables
 
-Create a `.env` file in the project root:
+A \`.env\` file is included with the project and contains the credentials of a dedicated test Gmail account.
 
-```env
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-gmail-app-password
-```
+If you want to use the provided test email configuration, no changes are required.
+
+Alternatively, you can replace the values in \`.env\` with your own Gmail address and Gmail App Password.
 
 Email configuration is optional for the rest of the API, but required for sending reservation confirmation emails.
 
-See the **Email Configuration** section below for details.
+See the **\*\*Email Configuration\*\*** section below for details.
 
 ## Running the Development Server
 
@@ -174,27 +173,53 @@ python manage.py generate_route_report --output reports/my_route_report.xlsx
 
 The route aggregations are performed using Django ORM database-level aggregation.
 
-## Email Configuration
+**## Email Configuration**
 
 Reservation confirmation emails are sent using Gmail's SMTP server.
 
-Create a `.env` file in the project root with:
+The project includes a \`.env\` file with a dedicated test Gmail account configured for email functionality. The credentials in this file are intended **only for testing this project**.
 
-```env
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-gmail-app-password
-SECRET_KEY=your-secret-key
-```
+If you prefer to use your own Gmail account, replace the values in \`.env\` with your own credentials and Gmail App Password.
 
-SECRET_KEY is not directly required by the current API functionality. However, the project is configured to read the Django SECRET_KEY from the .env file, so defining it is recommended to avoid potential issues with Django features.
+\`\`\`env
+
+EMAIL\_HOST\_USER=your-email\@gmail.com
+
+EMAIL\_HOST\_PASSWORD=your-gmail-app-password
+
+SECRET\_KEY=your-secret-key
+
+\`\`\`
 
 The project uses:
 
-```text
+\`\`\`text
+
 SMTP Host: smtp.gmail.com
+
 Port: 587
+
 TLS: Enabled
-```
+
+\`\`\`
+
+**### Gmail App Password**
+
+If using your own Gmail account, an App Password should be used instead of the normal Gmail account password.
+
+The account must have two-step verification enabled before an App Password can be created.
+
+After creating the App Password, update \`.env\`:
+
+\`\`\`env
+
+EMAIL\_HOST\_USER=your-email\@gmail.com
+
+EMAIL\_HOST\_PASSWORD=your-app-password
+
+\`\`\`
+
+\`SECRET\_KEY\` is read from the \`.env\` file by the project. Although the current API functionality does not directly depend on it, defining it is recommended to ensure Django features continue to work correctly.
 
 ### Gmail App Password
 
