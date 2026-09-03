@@ -173,7 +173,7 @@ python manage.py generate_route_report --output reports/my_route_report.xlsx
 
 The route aggregations are performed using Django ORM database-level aggregation.
 
-**## Email Configuration**
+## Email Configuration
 
 Reservation confirmation emails are sent using Gmail's SMTP server.
 
