@@ -1,9 +1,7 @@
 from django.core.management.base import BaseCommand
-
-from django.db.models import Count, Sum, Q, F, ExpressionWrapper, DecimalField, OuterRef, Subquery
+from django.db.models import Count, Sum
 
 from apps.flights.models import Flight, RouteReport
-from django.db.models.functions import Coalesce
 from apps.reservations.models import Reservation
 
 from openpyxl import Workbook
@@ -21,69 +19,91 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        model_counts = (
-            Flight.objects
-            .filter(
-                departure=OuterRef("departure"),
-                destination=OuterRef("destination"),
-            )
-            .values("airplane__model")
-            .annotate(
-                model_count=Count("id")
-            )
-            .order_by("-model_count")
-        )
-
-        reservation_counts = (
-            Reservation.objects
-            .filter(
-                flight__departure=OuterRef("departure"),
-                flight__destination=OuterRef("destination"),
-                status=True,
-            )
-            .values(
-                "flight__departure",
-                "flight__destination",
-            )
-            .annotate(
-                reservation_count=Count("id")
-            )
-            .values("reservation_count")
-        )
-
-        routes = (
+        flight_stats = (
             Flight.objects
             .values("departure", "destination")
             .annotate(
                 total_flights=Count("id"),
                 total_seats=Sum("airplane__capacity"),
-                used_seats=Coalesce(
-                    Subquery(reservation_counts[:1]),
-                    0
-                ),
-                occupancy_rate=ExpressionWrapper(
-                    100.0 * F("used_seats") / F("total_seats"),
-                    output_field=DecimalField(
-                        max_digits=5,
-                        decimal_places=2
-                    ),
-                ),
-                most_used_plane_model=Subquery(
-                    model_counts.values("airplane__model")[:1]
-                ),
             )
         )
 
-        for route in routes:
+        flight_data = {
+            (row["departure"], row["destination"]): {
+                "total_flights": row["total_flights"],
+                "total_seats": row["total_seats"],
+            }
+            for row in flight_stats
+        }
+
+        reservation_stats = (
+            Reservation.objects
+            .filter(status=True)
+            .values(
+                "flight__departure",
+                "flight__destination",
+            )
+            .annotate(
+                used_seats=Count("id")
+            )
+        )
+
+        reservation_data = {
+            (
+                row["flight__departure"],
+                row["flight__destination"],
+            ): row["used_seats"]
+            for row in reservation_stats
+        }
+
+        model_stats = (
+            Flight.objects
+            .values(
+                "departure",
+                "destination",
+                "airplane__model",
+            )
+            .annotate(
+                model_count=Count("id")
+            )
+            .order_by(
+                "departure",
+                "destination",
+                "-model_count",
+            )
+        )
+
+        model_data = {}
+
+        for row in model_stats:
+            route = (
+                row["departure"],
+                row["destination"],
+            )
+
+            if route not in model_data:
+                model_data[route] = row["airplane__model"]
+
+        for route, stats in flight_data.items():
+
+            used_seats = reservation_data.get(route, 0)
+
+            if stats["total_seats"]:
+                occupancy_rate = (
+                    used_seats / stats["total_seats"] * 100
+                )
+            else:
+                occupancy_rate = 0
+
             RouteReport.objects.update_or_create(
-                departure=route["departure"],
-                destination=route["destination"],
+                departure=route[0],
+                destination=route[1],
                 defaults={
-                    "total_flights": route["total_flights"],
-                    "total_seats": route["total_seats"],
-                    "used_seats": route["used_seats"],
-                    "occupancy_rate": route["occupancy_rate"],
-                    "most_used_plane_model": route["most_used_plane_model"],
+                    "total_flights": stats["total_flights"],
+                    "total_seats": stats["total_seats"],
+                    "used_seats": used_seats,
+                    "occupancy_rate": round(occupancy_rate, 2),
+                    "most_used_plane_model": model_data.get(route),
                 },
             )
 
@@ -126,8 +146,20 @@ class Command(BaseCommand):
 
             for cell in column:
                 if cell.value is not None:
-                    max_length = max(max_length, len(str(cell.value)))
+                    max_length = max(
+                        max_length,
+                        len(str(cell.value))
+                    )
 
-            worksheet.column_dimensions[column_letter].width = max_length + 2
+            worksheet.column_dimensions[column_letter].width = (
+                max_length + 2
+            )
 
         workbook.save(options["output"])
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Route report generated successfully: "
+                f"{options['output']}"
+            )
+        )
