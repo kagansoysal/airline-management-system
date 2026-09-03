@@ -177,17 +177,17 @@ The route aggregations are performed using Django ORM database-level aggregation
 
 Reservation confirmation emails are sent using Gmail's SMTP server.
 
-The project includes a \`.env\` file with a dedicated test Gmail account configured for email functionality. The credentials in this file are intended **only for testing this project**.
+The project includes a .env file with a dedicated test Gmail account configured for email functionality. The credentials in this file are intended **only for testing this project**.
 
 If you prefer to use your own Gmail account, replace the values in \`.env\` with your own credentials and Gmail App Password.
 
 ```env
 
-EMAIL\_HOST\_USER=your-email\@gmail.com
+EMAIL_HOST_USER=your-email@gmail.com
 
-EMAIL\_HOST\_PASSWORD=your-gmail-app-password
+EMAIL_HOST_PASSWORD=your-gmail-app-password
 
-SECRET\_KEY=your-secret-key
+SECRET_KEY=your-secret-key
 
 ```
 
@@ -203,23 +203,23 @@ TLS: Enabled
 
 ```
 
-**### Gmail App Password**
+## Gmail App Password
 
 If using your own Gmail account, an App Password should be used instead of the normal Gmail account password.
 
 The account must have two-step verification enabled before an App Password can be created.
 
-After creating the App Password, update \`.env\`:
+After creating the App Password, update .env:
 
 ```env
 
-EMAIL\_HOST\_USER=your-email\@gmail.com
+EMAIL_HOST_USER=your-email@gmail.com
 
-EMAIL\_HOST\_PASSWORD=your-app-password
+EMAIL_HOST_PASSWORD=your-app-password
 
 ```
 
-SECRET\_KEY is read from the .env file by the project. Although the current API functionality does not directly depend on it, defining it is recommended to ensure Django features continue to work correctly.
+SECRET_KEY is read from the .env file by the project. Although the current API functionality does not directly depend on it, defining it is recommended to ensure Django features continue to work correctly.
 
 ## Postman Collection
 
